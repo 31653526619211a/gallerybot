@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+.env
+.venv
+.git
+.gitignore
+README.md
+Dockerfile
+*.md
+LICENSE
