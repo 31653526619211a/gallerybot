@@ -5,8 +5,14 @@ import re
 
 TOKEN = '7072529241:AAE0d8ZkzDAe_wa2FWeCN8dKAd11S4vS91g'
 
-async def fetch_gallery_metadata(gallery_id: str, gallery_token: str):
-    api_url = "https://api.e-hentai.org/api.php"
+async def fetch_gallery_metadata(gallery_id: str, gallery_token: str, domain: str):
+    if domain == "e-hentai.org":
+        api_url = "https://api.e-hentai.org/api.php"
+    elif domain == "exhentai.org":
+        api_url = "https://api.exhentai.org/api.php"
+    else:
+        return None
+
     request_body = {
         "method": "gdata",
         "gidlist": [[int(gallery_id), gallery_token]],
@@ -23,24 +29,30 @@ async def gallery_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return
 
     url = ' '.join(context.args)
-    match = re.search(r'https://e-hentai\.org/g/(\d+)/([0-9a-f]+)/?', url)
+    match = re.search(r'https://(e-hentai\.org|exhentai\.org)/g/(\d+)/([0-9a-f]+)/?', url)
     if not match:
-        await update.message.reply_text("URL格式不正确，请确保使用正确的e-hentai画廊URL。")
+        await update.message.reply_text("URL格式不正确，请确保使用正确的URL。")
         return
 
-    gallery_id, gallery_token = match.groups()
-    metadata = await fetch_gallery_metadata(gallery_id, gallery_token)
+    domain, gallery_id, gallery_token = match.groups()
+    metadata = await fetch_gallery_metadata(gallery_id, gallery_token, domain)
 
     if not metadata:
         await update.message.reply_text("未找到画廊信息。")
         return
 
+    # 在上传者前加#
+    uploader = f"#{metadata['uploader']}" if metadata.get('uploader') else "未知"
+
+    # 在每个标签前加#
+    tags = ' '.join([f"#{tag}" for tag in metadata['tags']]) if metadata.get('tags') else "无标签"
+
     message_text = (
         f"名称: {metadata['title']}\n"
-        f"上传者: {metadata['uploader']}\n"
+        f"上传者: {uploader}\n"
         f"上传日期: {metadata['posted']}\n"
-        f"标签: {', '.join(metadata['tags'])}\n"
-        f"画廊URL: https://e-hentai.org/g/{gallery_id}/{gallery_token}/\n"
+        f"标签: {tags}\n"
+        f"画廊URL: {url}\n"
     )
 
     await update.message.reply_photo(photo=metadata['thumb'], caption=message_text)
@@ -52,4 +64,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-  
