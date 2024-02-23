@@ -1,0 +1,2 @@
+确保你的Python环境已安装所需的库。打开终端或命令提示符，安装python-telegram-bot和httpx库
+从botfather创建bot，获取token填入main.py的TOKEN值，保存运行即可。
