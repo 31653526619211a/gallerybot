@@ -1,0 +1,2 @@
+python-telegram-bot==13.7  # 请检查最新版本
+httpx==0.18.2  # 请检查最新版本
