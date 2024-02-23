@@ -5,7 +5,8 @@ import re
 from collections import defaultdict
 from datetime import datetime
 
-TOKEN = '7072529241:AAE0d8ZkzDAe_wa2FWeCN8dKAd11S4vS91g'
+TOKEN = 'xxxxxxxxxx:xxxxxxxxxxxxxxxxx'#修改为自己bot的token
+
 
 async def fetch_gallery_metadata(gallery_id: str, gallery_token: str, domain: str):
     if domain == "e-hentai.org":
