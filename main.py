@@ -2,6 +2,8 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 import httpx
 import re
+from collections import defaultdict
+from datetime import datetime
 
 TOKEN = '7072529241:AAE0d8ZkzDAe_wa2FWeCN8dKAd11S4vS91g'
 
@@ -43,17 +45,35 @@ async def gallery_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     # 在上传者前加#
     uploader = f"#{metadata['uploader']}" if metadata.get('uploader') else "未知"
+    # 在上传日期之前添加正常时间格式
+    upload_date = datetime.utcfromtimestamp(metadata['posted']).strftime('%Y-%m-%d %H:%M:%S')
 
-    # 在每个标签前加#
-    tags = ' '.join([f"#{tag}" for tag in metadata['tags']]) if metadata.get('tags') else "无标签"
+# Process and format tags
+    tags_by_category = defaultdict(list)
+    for tag in metadata['tags']:
+        category, detail = tag.split(':', 1)  # Split each tag into category and detail
+        tags_by_category[category].append(detail)
+    
+    # Build the formatted tag string
+    formatted_tags = []
+    for category, details in tags_by_category.items():
+        # 在为每个细节前加#之前，替换空格为下划线
+        details_str = ' '.join([f"#{detail.replace(' ', '_')}" for detail in details])
 
+        formatted_tags.append(f"{category}:{details_str}")
+    
+    formatted_tags_str = '\n'.join(formatted_tags)  # Join all formatted tags with newline
+
+    # 使用上传日期而不是时间戳
     message_text = (
-        f"名称: {metadata['title']}\n"
-        f"上传者: {uploader}\n"
-        f"上传日期: {metadata['posted']}\n"
-        f"标签: {tags}\n"
-        f"画廊URL: {url}\n"
-    )
+    f"名称: {metadata['title']}\n"
+    f"上传者: {uploader}\n"
+    f"上传日期: {upload_date}\n"  # 使用正常时间格式
+    f"评分: {metadata['rating']}\n"
+    f"标签:\n{formatted_tags_str}\n"
+    f"画廊URL: {url}\n"
+
+)
 
     await update.message.reply_photo(photo=metadata['thumb'], caption=message_text)
 
